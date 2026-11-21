@@ -52,3 +52,48 @@ export const FABRIC_COLOR_OPTIONS: ReadonlyArray<FabricColorOption> = [
 
 export type GarmentViewMode = "fabric" | "heatmap";
 
+export const CATEGORY_TO_GARMENT_TYPE: Readonly<Record<string, GarmentTypeOption>> = {
+  "t-shirts": "tshirt",
+  "t-shirt": "tshirt",
+  tshirt: "tshirt",
+  tshirts: "tshirt",
+  shirts: "shirt",
+  shirt: "shirt",
+  trousers: "trousers",
+  trouser: "trousers",
+  kurtis: "kurti",
+  kurti: "kurti",
+};
+
+/**
+ * Strictly maps a product category to an avatar engine garmentType.
+ * Returns null for any unmapped category (e.g. Outerwear, Jackets, Shoes, Accessories, Hoodies).
+ * Never guesses a mapping.
+ */
+export function mapCategoryToGarmentType(
+  category: string | null | undefined
+): GarmentTypeOption | null {
+  if (!category || typeof category !== "string") {
+    return null;
+  }
+  const normalized = category.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+  return Object.prototype.hasOwnProperty.call(CATEGORY_TO_GARMENT_TYPE, normalized)
+    ? CATEGORY_TO_GARMENT_TYPE[normalized]
+    : null;
+}
+
+/**
+ * Appends a cache-busting `?v=` query parameter to a garment GLB URL
+ * because the engine reuses the same filename (e.g. garment_shirt.glb) across sizes.
+ */
+export function appendCacheBusterToGarmentUrl(
+  url: string,
+  version: number = Date.now()
+): string {
+  return url.includes("?") ? `${url}&v=${version}` : `${url}?v=${version}`;
+}
+
+

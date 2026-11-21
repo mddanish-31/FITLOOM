@@ -34,9 +34,11 @@ import {
   getRelatedGarments,
 } from "@/lib/shop-utils";
 import { useFitloom } from "@/components/providers/fitloom-provider";
+import { ProductAvatarTryOnPanel } from "@/components/avatar/ProductAvatarTryOnPanel";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { mapCategoryToGarmentType } from "@/lib/garments";
 import { cn } from "@/lib/utils";
 
 type GalleryViewId = "photo" | "swatch";
@@ -262,7 +264,8 @@ export default function ProductDetailPage({
   const compareLimitReached = !isCompared && compareIds.length >= 3;
   const hasAvailableSizes = garment.sizes.length > 0;
   const isCustomFitEligible = hasAvailableSizes && specSummary.hasSpecs;
-  const isVtonEligible = Boolean(garment.id);
+  const mappedGarmentType = mapCategoryToGarmentType(garment.category);
+  const isVtonEligible = mappedGarmentType !== null;
 
   function handleSelectSize(sz: GarmentSize) {
     setSelectedSize(sz);
@@ -825,43 +828,38 @@ export default function ProductDetailPage({
           </div>
 
           {/* 9. CUSTOMFIT & Virtual Try-On Entry Points */}
-          <div className="grid gap-3 sm:grid-cols-2">
-            {/* Virtual Try-On Entry Point */}
-            {isVtonEligible ? (
+          <div className={cn("grid gap-3", isVtonEligible && "sm:grid-cols-2")}>
+            {/* Virtual Try-On Entry Point — shown ONLY for mapped garment categories */}
+            {isVtonEligible && (
               <div className="flex flex-col justify-between rounded-2xl border border-violet-200 bg-violet-50/50 p-4">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#4C1D95]">
                       <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                      Virtual Try-On &amp; Studio
+                      3D Avatar Try-On &amp; Studio
                     </span>
-                    <Badge variant="amber" size="sm">
-                      Coming Soon
+                    <Badge variant="default" size="sm">
+                      Live 3D Engine
                     </Badge>
                   </div>
                   <p className="text-xs leading-relaxed text-slate-600">
-                    Preview garment styling in the simulated Fitting Room or pair
-                    it in Style Studio. Visual simulation only — not a guarantee
-                    of exact physical fit.
+                    Drape this {garment.category.toLowerCase()} item on your 3D
+                    avatar below and evaluate live engine size recommendations.
                   </p>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Link href={`/try-on?product=${encodeURIComponent(garment.id)}`}>
+                  <a href="#try-on-my-avatar">
                     <Button size="sm" variant="secondary">
-                      Open Try-On (Coming Soon)
+                      Try on my avatar
                       <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                     </Button>
-                  </Link>
+                  </a>
                   <Link href={`/studio?product=${encodeURIComponent(garment.id)}`}>
                     <Button size="sm" variant="ghost">
                       Style Studio
                     </Button>
                   </Link>
                 </div>
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-500">
-                Virtual Try-On is unavailable for this item.
               </div>
             )}
 
@@ -906,6 +904,13 @@ export default function ProductDetailPage({
           </div>
         </section>
       </div>
+
+      {/* 3B. Try on my avatar panel (rendered ONLY for mapped garment categories) */}
+      <ProductAvatarTryOnPanel
+        category={garment.category}
+        productName={garment.name}
+        swatchHex={garment.swatchHex}
+      />
 
       {/* 4 & 5. Garment Measurements + Fit & Fabric Intelligence Architecture */}
       <div
